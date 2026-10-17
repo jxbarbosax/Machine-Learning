@@ -1,0 +1,86 @@
+{
+  "dataset": "everything_and_then_some_repeat_purchase",
+  "steps": [
+    {
+      "column": "24 columns with 65 missing values",
+      "action": "remove rows where all 24 columns are missing",
+      "reason": "the same 65 rows have missing values across the entire block of current-transaction, historical, rolling-frequency, categorical, date and noise variables; ID, customer_id and repeat_purchase_90d remain present. Removing these incomplete purchase records avoids retaining observations with no usable predictor information while preserving all other rows.",
+      "rows_affected": 65,
+      "carries": {
+        "treatment": "drop_rows",
+        "condition": "all columns in cols_65 are null",
+        "columns": [
+          "Total a Pagar",
+          "Total Bruto",
+          "Total Liquido",
+          "Total Imp_",
+          "Total Portes",
+          "Total Desc_ Global",
+          "Total Desc_ Linha",
+          "Custo",
+          "N_ Detalhes",
+          "invoice_count_current_purchase",
+          "customer_tenure_days",
+          "prior_purchase_count",
+          "prior_total_spend",
+          "purchase_count_30d",
+          "spend_30d",
+          "purchase_count_90d",
+          "spend_90d",
+          "purchase_count_180d",
+          "spend_180d",
+          "purchase_count_365d",
+          "commercial_zone",
+          "document_series",
+          "purchase_date",
+          "random_noise"
+        ],
+        "rows_before": 6534,
+        "rows_after": 6469
+      }
+    },
+    {
+      "column": "customer_id",
+      "action": "left join clientes.csv to the cleaned train dataset",
+      "reason": "clientes.csv contains customer-level attributes and can be linked to each purchase occasion through customer_id. A left join preserves every cleaned purchase row; because customer_id is unique in clientes.csv, the join does not duplicate purchase records.",
+      "rows_affected": 6469,
+      "carries": {
+        "join_type": "left",
+        "left_key": "customer_id",
+        "right_key": "customer_id",
+        "right_dataset": "clientes.csv",
+        "match_rate": 1.0,
+        "rows_before_join": 6469,
+        "rows_after_join": 6469
+      }
+    },
+    {
+      "column": "remaining missing values",
+      "action": "missing values LEFT OPEN; imputation strategy postponed to the preprocessing/modeling stage",
+      "reason": "the remaining missing values were identified and inspected, but no median, mode or other fill value has yet been applied. Any imputation should be decided and fitted consistently within the training procedure, without using information from test.csv.",
+      "rows_affected": null,
+      "carries": {
+        "applied": false,
+        "treatment": "postponed",
+        "note": "missing values remain as null after row removal and customer join"
+      }
+    },
+    {
+      "column": "days_since_previous_purchase, prior_mean_purchase_value, prior_mean_gap_days, spend_365d, random_noise",
+      "action": "negative values identified; no correction applied yet",
+      "reason": "negative values were found in four business-related numeric variables and in random_noise. They were inspected as part of the EDA, but no clipping, blanking or transformation was applied because their validity has not yet been established.",
+      "rows_affected": 3410,
+      "carries": {
+        "applied": false,
+        "treatment": "inspect_only",
+        "counts": {
+          "days_since_previous_purchase": 16,
+          "prior_mean_purchase_value": 16,
+          "prior_mean_gap_days": 16,
+          "spend_365d": 15,
+          "random_noise": 3357
+        }
+      }
+    }
+  ]
+}
